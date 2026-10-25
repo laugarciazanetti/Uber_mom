@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Uber Mom & Dad</title>
+  <title>Uber Parents</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
@@ -27,7 +27,7 @@
       </div>
       <div class="bg-indigo-700 p-1 rounded-lg flex text-xs font-semibold">
         <button id="btn-role-kid" onclick="setRole('kid')" class="px-3 py-1 rounded-md bg-white text-indigo-700 shadow">Hijos</button>
-        <button id="btn-role-mom" onclick="setRole('mom')" class="px-3 py-1 rounded-md text-indigo-100 hover:text-white">Choferes (Papás)</button>
+        <button id="btn-role-mom" onclick="setRole('mom')" class="px-3 py-1 rounded-md text-indigo-100 hover:text-white">Choferes</button>
       </div>
     </div>
   </header>
@@ -40,11 +40,11 @@
         <h2 class="text-lg font-bold text-slate-700 mb-3 flex items-center gap-2">
           <i class="fa-solid fa-user-graduate text-indigo-500"></i> ¿Quién pide el viaje?
         </h2>
-        <div class="grid grid-cols-3 gap-2 mb-4">
-          <button type="button" onclick="selectKid('Sofía')" class="kid-btn p-2 text-sm border rounded-xl font-medium border-slate-200 text-slate-600 hover:bg-indigo-50">Felipe</button>
-          <button type="button" onclick="selectKid('Mateo')" class="kid-btn p-2 text-sm border rounded-xl font-medium border-slate-200 text-slate-600 hover:bg-indigo-50">Guille</button>
-          <button type="button" onclick="selectKid('Lucas')" class="kid-btn p-2 text-sm border rounded-xl font-medium border-slate-200 text-slate-600 hover:bg-indigo-50">Juanmi</button>
-          <button type="button" onclick="selectKid('Lucas')" class="kid-btn p-2 text-sm border rounded-xl font-medium border-slate-200 text-slate-600 hover:bg-indigo-50">Enri</button>
+        <div class="grid grid-cols-2 gap-2 mb-4">
+          <button type="button" onclick="selectKid('Felipe')" class="kid-btn p-2.5 text-sm border rounded-xl font-semibold border-slate-200 text-slate-700 hover:bg-indigo-50">Felipe</button>
+          <button type="button" onclick="selectKid('Guille')" class="kid-btn p-2.5 text-sm border rounded-xl font-semibold border-slate-200 text-slate-700 hover:bg-indigo-50">Guille</button>
+          <button type="button" onclick="selectKid('Juen')" class="kid-btn p-2.5 text-sm border rounded-xl font-semibold border-slate-200 text-slate-700 hover:bg-indigo-50">Juen</button>
+          <button type="button" onclick="selectKid('Enri')" class="kid-btn p-2.5 text-sm border rounded-xl font-semibold border-slate-200 text-slate-700 hover:bg-indigo-50">Enri</button>
         </div>
 
         <h2 class="text-lg font-bold text-slate-700 mb-3 flex items-center gap-2">
@@ -66,8 +66,8 @@
           <input type="time" id="pickup-time" class="p-2 border rounded-xl text-sm border-slate-200 text-slate-700">
         </div>
 
-        <button onclick="requestPickup()" class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-lg transition">
-          <i class="fa-solid fa-paper-plane mr-2"></i> Pedir viaje a Papá/Mamá
+        <button onclick="requestPickup()" class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-lg transition flex items-center justify-center gap-2">
+          <i class="fa-solid fa-paper-plane"></i> Pedir viaje a los papás
         </button>
       </div>
 
@@ -89,13 +89,17 @@
 
     <!-- VISTA PAPÁS / CHOFERES -->
     <section id="view-mom" class="space-y-4 hidden">
+      <!-- Botón para activar sonido y avisos visuales -->
+      <button onclick="enableSoundAndNotifications()" id="btn-enable-sound" class="w-full py-2.5 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold rounded-xl shadow flex items-center justify-center gap-2">
+        <i class="fa-solid fa-bell"></i> Activar Sonido de Alarma y Notificaciones
+      </button>
+
       <div class="flex justify-between items-center mb-2">
         <h2 class="text-lg font-bold text-slate-800">Solicitudes Activas</h2>
-        <span id="trip-count" class="bg-indigo-100 text-indigo-700 text-xs px-2 py-1 rounded-full font-bold">0 viajes</span>
+        <span id="trip-count" class="bg-indigo-100 text-indigo-700 text-xs px-2.5 py-1 rounded-full font-bold">0 viajes</span>
       </div>
 
       <div id="mom-trips-list" class="space-y-3">
-        <!-- Tarjetas dinámicas -->
         <p id="no-trips-msg" class="text-center text-slate-400 py-8 text-sm">No hay viajes pendientes por ahora. ☕</p>
       </div>
     </section>
@@ -104,8 +108,73 @@
 
   <script>
     let currentRole = 'kid';
-    let selectedKid = 'Sofía';
+    let selectedKid = 'Felipe';
     let selectedPlace = 'Colegio';
+    let audioEnabled = false;
+
+    // Generador de sonido de alarma de alta frecuencia
+    function triggerAlarmSound() {
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return;
+        const ctx = new AudioCtx();
+        
+        // Tono 1
+        const osc1 = ctx.createOscillator();
+        const gain1 = ctx.createGain();
+        osc1.type = 'sine';
+        osc1.frequency.setValueAtTime(587.33, ctx.currentTime); // D5
+        osc1.frequency.setValueAtTime(880, ctx.currentTime + 0.15); // A5
+        gain1.gain.setValueAtTime(0.4, ctx.currentTime);
+        gain1.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
+        osc1.connect(gain1);
+        gain1.connect(ctx.destination);
+        osc1.start();
+        osc1.stop(ctx.currentTime + 0.5);
+
+        // Tono 2 (repetido para efecto ruidoso de alarma)
+        setTimeout(() => {
+          const osc2 = ctx.createOscillator();
+          const gain2 = ctx.createGain();
+          osc2.type = 'sine';
+          osc2.frequency.setValueAtTime(880, ctx.currentTime);
+          osc2.frequency.setValueAtTime(1174.66, ctx.currentTime + 0.15);
+          gain2.gain.setValueAtTime(0.4, ctx.currentTime);
+          gain2.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
+          osc2.connect(gain2);
+          gain2.connect(ctx.destination);
+          osc2.start();
+          osc2.stop(ctx.currentTime + 0.5);
+        }, 200);
+      } catch (e) {
+        console.log("Audio no activado aún", e);
+      }
+    }
+
+    function enableSoundAndNotifications() {
+      audioEnabled = true;
+      triggerAlarmSound();
+      
+      if ("Notification" in window) {
+        Notification.requestPermission().then(permission => {
+          if (permission === "granted") {
+            alert("¡Alarma y notificaciones activadas con éxito!");
+            document.getElementById('btn-enable-sound').classList.add('bg-emerald-600');
+            document.getElementById('btn-enable-sound').classList.remove('bg-amber-500');
+            document.getElementById('btn-enable-sound').innerHTML = '<i class="fa-solid fa-check"></i> Alarma y Notificaciones Activas';
+          }
+        });
+      } else {
+        alert("¡Sonido de alarma activado!");
+      }
+    }
+
+    function sendSystemNotification(title, body) {
+      triggerAlarmSound();
+      if ("Notification" in window && Notification.permission === "granted") {
+        new Notification(title, { body: body });
+      }
+    }
 
     function setRole(role) {
       currentRole = role;
@@ -127,8 +196,9 @@
     function selectKid(name) {
       selectedKid = name;
       document.querySelectorAll('.kid-btn').forEach(b => {
-        b.classList.toggle('bg-indigo-100', b.innerText.trim() === name);
-        b.classList.toggle('border-indigo-500', b.innerText.trim() === name);
+        const isMatch = b.innerText.trim() === name;
+        b.classList.toggle('bg-indigo-100', isMatch);
+        b.classList.toggle('border-indigo-500', isMatch);
       });
     }
 
@@ -153,9 +223,16 @@
       return JSON.parse(localStorage.getItem('ubermom_trips') || '[]');
     }
 
-    function saveTrips(trips) {
+    function saveTrips(trips, isNewRequest = false, isTimeChange = false) {
       localStorage.setItem('ubermom_trips', JSON.stringify(trips));
       window.dispatchEvent(new Event('storage'));
+      
+      if (isNewRequest) {
+        sendSystemNotification("🚗 ¡Nuevo Viaje Solicitado!", `${selectedKid} pide que lo busquen en ${selectedPlace}`);
+      } else if (isTimeChange) {
+        sendSystemNotification("⚠️ ¡Cambio de Horario!", `Uno de tus hijos modificó la hora de recogida`);
+      }
+
       renderMomView();
       renderKidView();
     }
@@ -175,8 +252,8 @@
       };
 
       trips.unshift(newTrip);
-      saveTrips(trips);
-      alert('¡Viaje solicitado a los papás!');
+      saveTrips(trips, true, false);
+      alert(`¡Viaje de ${selectedKid} solicitado!`);
     }
 
     function modifyTimeModal() {
@@ -186,8 +263,8 @@
       if (newTime) {
         trips[0].time = newTime;
         trips[0].changed = true;
-        saveTrips(trips);
-        alert('Horario actualizado y notificado a los papás');
+        saveTrips(trips, false, true);
+        alert('Horario actualizado y notificado con alarma a los papás');
       }
     }
 
@@ -220,11 +297,11 @@
 
       container.innerHTML = trips.map(t => `
         <div class="bg-white p-4 rounded-2xl shadow-sm border ${t.changed ? 'time-changed-alert border-amber-400' : 'border-slate-200'} space-y-3">
-          ${t.changed ? `<div class="text-xs font-bold text-amber-800 flex items-center gap-1"><i class="fa-solid fa-bell animate-bounce"></i> ¡El hijo modificó el horario!</div>` : ''}
+          ${t.changed ? `<div class="text-xs font-bold text-amber-800 flex items-center gap-1"><i class="fa-solid fa-bell animate-bounce"></i> ¡Horario modificado!</div>` : ''}
           <div class="flex justify-between items-start">
             <div>
-              <span class="text-xs font-bold bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full">${t.kid}</span>
-              <h4 class="font-bold text-slate-800 text-base mt-1">${t.place}</h4>
+              <span class="text-xs font-bold bg-indigo-100 text-indigo-700 px-2.5 py-1 rounded-full">${t.kid}</span>
+              <h4 class="font-bold text-slate-800 text-base mt-2">${t.place}</h4>
             </div>
             <div class="text-right">
               <span class="text-lg font-extrabold text-indigo-600">${t.time}</span>
@@ -233,7 +310,7 @@
           </div>
           
           <div class="text-xs font-semibold text-slate-600 bg-slate-50 p-2 rounded-lg">
-            Estado actual: <span class="text-indigo-600 font-bold">${t.status}</span>
+            Estado: <span class="text-indigo-600 font-bold">${t.status}</span>
           </div>
 
           <div class="grid grid-cols-2 gap-2 pt-1">
@@ -260,12 +337,13 @@
     }
 
     window.addEventListener('storage', () => {
+      triggerAlarmSound();
       renderMomView();
       renderKidView();
     });
 
     setTimeQuick(15);
-    selectKid('Sofía');
+    selectKid('Felipe');
     selectPlace('Colegio');
     renderMomView();
     renderKidView();
